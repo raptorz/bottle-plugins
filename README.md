@@ -4,11 +4,11 @@
 
 ## 包含
 
-1. beaker\_plugin.BeakerPlugin
-1. params\_plugin.ParamsPlugin
-1. login\_plugin.LoginPlugin
+1. beaker.BeakerPlugin
+1. params.ParamsPlugin
+1. login.LoginPlugin
 
-## beaker\_plugin.BeakerPlugin
+## beaker.BeakerPlugin
 
 Beaker session插件，比bottle的官方beaker插件更便于使用——其实官方的beaker插件什么事都没做，跟直接用beaker没什么区别。
 
@@ -24,7 +24,7 @@ Beaker session插件，比bottle的官方beaker插件更便于使用——其实
 
 必须配合beaker midware使用，使用方法见beaker文档或示例程序demo.py。
 
-## params\_plugin.ParamsPlugin
+## params.ParamsPlugin
 
 参数插件，自动把请求参数转为函数调用参数，默认使用utf-8编码转为Unicode，自动根据请求方法读取query或forms，如果设置了json\_params选项，则读取json。
 
@@ -41,13 +41,13 @@ route参数：
 
 在请求的route中也可以使用 json\_params ，用于对特定请求使用json格式。
 
-## login\_plugin.LoginPlugin
+## login.LoginPlugin
 
 简单的登录处理插件。如果请求需要用户登录时加上登录参数（默认为login），则会在处理请求前调用login\_func处理登录操作，成功则将结果返回给login参数。
 
 因为处理登录操作通常需要依赖数据库和session，所以需要两个额外参数：db和session。这两个参数将会被传递给login\_func。
 
-所以使用本插件至少需要同时安装一个数据库（或类似的如sqlalchemy）插件，和类似本插件包中的beaker\_plugin这样的session插件。
+所以使用本插件至少需要同时安装一个数据库（或类似的如sqlalchemy）插件，和类似本插件包中的BeakerPlugin这样的session插件。
 
 构造函数：
 
@@ -78,6 +78,6 @@ route参数：
 
 * python 2.7+ or python 3.4+（其它版本未测试）
 * bottle
-* beaker（beaker\_plugin需要）
-* beaker\_plugin（login\_plugin需要）
-* sqlite/sqlalchemy等数据库插件（login\_plugin需要）
+* beaker（BeakerPlugin需要）
+* BeakerPlugin（LoginPlugin需要）
+* sqlite/sqlalchemy等数据库插件（LoginPlugin需要）
