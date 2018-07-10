@@ -13,7 +13,7 @@ PY3=sys.version>"3"
 import inspect
 import bottle
 
-from webexceptions import WebUnauthorizedError
+from .webexceptions import WebUnauthorizedError
 
 import logging
 
@@ -56,7 +56,7 @@ class LoginPlugin(object):
         def wrapper(*args, **kwargs):
             login = self.login_func(kwargs[self.dbkeyword], kwargs[self.sessionkeyword])
             if login:
-                kwargs[self.keyword] =login
+                kwargs[self.keyword] = login
                 return callback(*args, **kwargs)
             else:
                 raise WebUnauthorizedError

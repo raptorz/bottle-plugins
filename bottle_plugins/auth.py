@@ -1,21 +1,31 @@
 # -*- coding: utf-8 -*-
 """
-    botas auth
+    bottle plugin of auth
     ~~~~~~~~~~~~~~~~
 
-    auth plugins for bottle.
+    auth plugin for bottle.
 
-    :copyright: 20150426 by raptor.zh@gmail.com.
+    :copyright: 20170123 by raptor.zh@gmail.com.
 """
+import sys
 import inspect
 import bottle
+
+from .webexceptions import WebUnauthorizedError, WebForbiddenError
 
 import logging
 
 logger = logging.getLogger(__name__)
 
+PY3 = sys.version > "3"
 
-# Bottle version >=0.10 required.
+
+# PluginError is defined in bottle >= 0.10
+if not hasattr(bottle, 'PluginError'):
+    class PluginError(bottle.BottleException):
+        pass
+    bottle.PluginError = PluginError
+
 
 class AuthPlugin(object):
 
@@ -32,8 +42,7 @@ class AuthPlugin(object):
             if not isinstance(other, AuthPlugin):
                 continue
             if other.keyword == self.keyword:
-                raise PluginError("Found another AuthPlugin with "\
-                "conflicting settings (non-unique keyword).")
+                raise PluginError("Found another AuthPlugin with duplicated keyword.")
     
     def apply(self, callback, route):
         pluginconf = route.config
@@ -41,17 +50,23 @@ class AuthPlugin(object):
         _auth_perm = pluginconf.get("auth_perm", None)
         _auth_args = pluginconf.get("auth_args", {})
 
-        argspec = inspect.getargspec(route.callback)
-        if self.keyword not in argspec.args or not _auth_func:
+        paramspec = inspect.signature(route.callback).parameters if PY3 else inspect.getargspec(route.callback).args
+
+        if self.keyword not in paramspec or not self.auth_func:
             return callback
+        if self.dbkeyword not in paramspec:
+            raise PluginError(
+                "[{}] parameter is required, please install the specific plugin first.".format(self.dbkeyword))
 
         def wrapper(*args, **kwargs):
-            if self.dbkeyword not in kwargs.keys():
-                raise PluginError("[%s] parameter is required, please install the specific plugin first." % self.dbkeyword)
             auth = _auth_func(kwargs[self.dbkeyword], **_auth_args)
             if auth:
                 kwargs[self.keyword] = auth
                 if not _auth_perm or _auth_perm(**kwargs):
                     return callback(*args, **kwargs)
+                else:
+                    raise WebForbiddenError
+            else:
+                raise WebUnauthorizedError
 
         return wrapper

@@ -9,16 +9,14 @@
     2015-09-02 for python3
 """
 import sys
-PY3=sys.version>"3"
-
 import inspect
 import bottle
-
-from webexceptions import WebBadrequestError
 
 import logging
 
 logger = logging.getLogger(__name__)
+
+PY3 = sys.version > "3"
 
 
 # PluginError is defined in bottle >= 0.10
@@ -61,19 +59,16 @@ class ParamsPlugin(object):
             except:
                 kw = None
             if kw:
-                keywords = [p for p in argspec.parameters.values() if p.kind==inspect.Parameter.VAR_KEYWORD] if PY3 else argspec.keywords
-                argkeys = [p.name for p in argspec.parameters.values() if p.kind==inspect.Parameter.POSITIONAL_OR_KEYWORD] if PY3 else argspec.args
+                keywords = [p for p in argspec.parameters.values()
+                            if p.kind == inspect.Parameter.VAR_KEYWORD] if PY3 else argspec.keywords
+                argkeys = [p.name for p in argspec.parameters.values()
+                           if p.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD] if PY3 else argspec.args
                 keys = set(kw.keys()) - set(kwargs.keys())
                 if not keywords:
                     keys = keys & set(argkeys[len(args):])
-                fn = (lambda d,k: d.__getitem__(k)) if _json_params or PY3 and bottle.request.content_type.find(\
-                        "multipart/form-data")>=0 else (lambda d,k: d.__getattr__(k))
-                [kwargs.__setitem__(k,fn(kw,k)) for k in keys]
-            try:
-                return callback(*args, **kwargs)
-            except TypeError:
-                import traceback
-                logger.debug(traceback.format_exc())
-                raise WebBadrequestError
+                fn = (lambda d, k: d.__getitem__(k)) if _json_params or PY3 and bottle.request.content_type.find(
+                        "multipart/form-data") >= 0 else (lambda d, k: d.__getattr__(k))
+                [kwargs.__setitem__(k, fn(kw, k)) for k in keys]
+            return callback(*args, **kwargs)
 
         return wrapper
