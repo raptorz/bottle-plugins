@@ -7,15 +7,17 @@
 
     :copyright: 20150904 by raptor.zh@gmail.com.
 """
+from functools import wraps
 import sys
-PY3=sys.version>"3"
-
 import inspect
-import bottle
-
 import logging
 
+import bottle
+
+
 logger = logging.getLogger(__name__)
+
+PY3=sys.version>"3"
 
 
 # PluginError is defined in bottle >= 0.10
@@ -46,6 +48,7 @@ class BeakerPlugin(object):
         if self.keyword not in paramspec:
             return callback
 
+        @wraps(callback)
         def wrapper(*args, **kwargs):
             kwargs[self.keyword] = bottle.request.environ.get("beaker.session")
             return callback(*args, **kwargs)

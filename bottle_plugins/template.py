@@ -6,11 +6,13 @@
     template for bottle.
 
     :copyright: 20150904 by raptor.zh@gmail.com.
+    rev.20190130: add config
 """
-import inspect
+from functools import wraps
+import logging
+
 import bottle
 
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -27,28 +29,32 @@ class TemplatePlugin(object):
     name = 'template'
     api = 2
 
-    def __init__(self, template=bottle.template, login_keyword="login"):
+    def __init__(self, template=bottle.template, authkeyword="", configkeyword="config", config=None):
         self.template = template
-        self.login_keyword = login_keyword
+        self.authkeyword = authkeyword
+        self.configkeyword = configkeyword
+        self.config = config
 
     def setup(self, app):
         for other in app.plugins:
             if not isinstance(other, TemplatePlugin):
                 continue
-            if other.keyword == self.keyword:
-                raise PluginError("Found another TemplatePlugin with duplicated keyword.")
+            raise PluginError("Found another TemplatePlugin.")
 
     def apply(self, callback, route):
-        _template = route.config.get("template", self.template)
+        _authkeyword = route.config.get("authkeyword", self.authkeyword)
         _view = route.config.get("view", "")
 
-        if not _template or not _view:
+        if not self.template or not _view:
             return callback
 
+        @wraps(callback)
         def wrapper(*args, **kwargs):
             result = callback(*args, **kwargs)
-            if self.login_keyword in kwargs.keys() and isinstance(result, dict):
-                result[self.login_keyword] = kwargs[self.login_keyword]
-            return _template(_view, result)
+            if _authkeyword and _authkeyword in kwargs.keys() and isinstance(result, dict):
+                result[_authkeyword] = kwargs[_authkeyword]
+            if self.configkeyword and self.config and isinstance(result, dict):
+                result[self.configkeyword] = self.config
+            return self.template(_view, result) if isinstance(result, dict) else result
 
         return wrapper
