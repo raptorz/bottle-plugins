@@ -15,10 +15,6 @@ import logging
 
 import bottle
 
-<<<<<<< HEAD
-=======
-import logging
->>>>>>> 5c5bc354b5e662e47c4ee0af73a4e8a6f199c39f
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +55,10 @@ class ParamsPlugin(object):
                 if _json_params:
                     kw = bottle.request.json
                 else:
-                    kw = bottle.request.params
+                    if route.method == "POST" or route.method == "PUT":
+                        kw = bottle.request.forms
+                    else:
+                        kw = bottle.request.query
             except:
                 kw = None
             if kw:
