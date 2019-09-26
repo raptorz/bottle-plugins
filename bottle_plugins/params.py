@@ -15,6 +15,10 @@ import logging
 
 import bottle
 
+<<<<<<< HEAD
+=======
+import logging
+>>>>>>> 5c5bc354b5e662e47c4ee0af73a4e8a6f199c39f
 
 logger = logging.getLogger(__name__)
 
